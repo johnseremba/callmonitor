@@ -11,3 +11,16 @@ buildscript {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+ext {
+    minSdk = 23
+    targetSdk = 31
+    compileSdk = targetSdk
+
+    androidxCoreKtxVersion = '1.7.0'
+    androidXMaterialVersion = '1.5.0'
+    androidXAppCompatVersion = '1.4.1'
+    androidXConstraintLayoutVersion = '2.1.3'
+    desugaringLibrary = '1.1.5'
+    koinVersion = '3.1.6'
+}
