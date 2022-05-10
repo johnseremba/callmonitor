@@ -31,6 +31,10 @@ android {
         }
     }
 
+    packagingOptions {
+        exclude 'META-INF/*'
+    }
+
     sourceSets {
         main.java.srcDirs += kotlinSrcDir
         test.java.srcDirs += kotlinTestSrcDir
@@ -60,5 +64,5 @@ dependencies {
 
     implementation "io.insert-koin:koin-android:$koinVersion"
 
-    project(":call-monitor-server")
+    implementation project(":call-monitor-server")
 }
