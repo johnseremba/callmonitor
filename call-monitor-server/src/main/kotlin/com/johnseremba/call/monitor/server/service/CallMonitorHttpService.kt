@@ -26,32 +26,36 @@ import io.netty.util.internal.logging.InternalLoggerFactory
 import io.netty.util.internal.logging.JdkLoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.ktor.ext.Koin
 
 internal class CallMonitorHttpService : Service() {
     private var messenger: Messenger? = null
     private var serviceHandler: ServiceHandler? = null
-
-    val serviceWorker: HttpServiceWorker by inject(HttpServiceWorker::class.java)
+    private val serviceWorker: HttpServiceWorker by inject(HttpServiceWorker::class.java)
 
     override fun onCreate() {
-        serviceHandler = ServiceHandler(Looper.getMainLooper())
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        initializeHttpService()
-        startForeground()
-        isRunning.set(true)
-        return START_STICKY
-    }
-
-    override fun onBind(intent: Intent?): IBinder? {
-        messenger = Messenger(serviceHandler)
+        Log.v(TAG, "onCreate")
         if (!isRunning.get()) {
             initializeHttpService()
             isRunning.set(true)
         }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.v(TAG, "onStartCommand")
+        startForeground()
+        return START_STICKY
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        Log.v(TAG, "onBind")
+        // Delay required to prevent a crash if koin initialization isn't completed by the time the service gets bound
+        Thread.sleep(100)
+
+        serviceHandler = ServiceHandler(Looper.getMainLooper())
+        messenger = Messenger(serviceHandler)
         return messenger?.binder
     }
 
@@ -65,7 +69,7 @@ internal class CallMonitorHttpService : Service() {
             InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE)
             embeddedServer(Netty, PORT) {
                 install(ContentNegotiation) { gson {} }
-                install(Koin) { modules(coreModule) }
+                install(Koin) { modules(coreModule, module { single { baseContext } }) }
                 install(Routing) { callMonitorRoutes() }
             }.start(wait = true)
         }.start()

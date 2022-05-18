@@ -9,12 +9,16 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.johnseremba.call.monitor.databinding.ActivityMainBinding
 import com.johnseremba.call.monitor.di.AppKoinComponent
 import com.johnseremba.call.monitor.server.service.ServiceCommunicationApi
 import com.johnseremba.call.monitor.server.service.getServiceIntent
 import com.johnseremba.call.monitor.server.service.toServiceMessage
+
+private const val TAG = "MainActivity"
+private const val REQUEST_CALL_LOG_PERMISSIONS_CODE = 101
 
 class MainActivity : AppCompatActivity(), AppKoinComponent {
     private lateinit var binding: ActivityMainBinding
@@ -47,7 +51,12 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
 
     override fun onStart() {
         super.onStart()
-        doBindService()
+        if (PermissionUtils.hasCallLoggingPermissions(this)) {
+            doBindService()
+        } else {
+            Log.d(TAG, "Requesting necessary permissions")
+            PermissionUtils.requestCallLoggingPermissions(this@MainActivity, REQUEST_CALL_LOG_PERMISSIONS_CODE)
+        }
     }
 
     override fun onDestroy() {
@@ -77,6 +86,17 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
                 }
             }
             else -> Unit
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_CALL_LOG_PERMISSIONS_CODE -> {
+                if (PermissionUtils.havePermissionsBeenGranted(grantResults)) {
+                    doBindService()
+                }
+            }
         }
     }
 }
