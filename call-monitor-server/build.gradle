@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 def kotlinSrcDir = "src" + File.separator + "main" + File.separator + "kotlin"
 def kotlinTestSrcDir = "src" + File.separator + "test" + File.separator + "kotlin"
@@ -41,6 +42,7 @@ ext {
     ktorVersion = '1.6.1'
     koinKtorVersion = '3.1.6'
     androidXCoreVersion = '1.7.0'
+    androidXRoomVersion = '2.4.2'
 }
 
 dependencies {
@@ -49,4 +51,8 @@ dependencies {
     implementation "io.ktor:ktor-gson:$ktorVersion"
     implementation "io.insert-koin:koin-ktor:$koinKtorVersion"
     implementation "androidx.core:core-ktx:$androidXCoreVersion"
+
+    implementation("androidx.room:room-runtime:$androidXRoomVersion")
+    implementation("androidx.room:room-ktx:$androidXRoomVersion")
+    kapt("androidx.room:room-compiler:$androidXRoomVersion")
 }

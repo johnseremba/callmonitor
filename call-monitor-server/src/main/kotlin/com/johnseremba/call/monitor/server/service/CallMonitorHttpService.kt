@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.johnseremba.call.monitor.server.R
 import com.johnseremba.call.monitor.server.di.coreModule
+import com.johnseremba.call.monitor.server.di.databaseModule
 import com.johnseremba.call.monitor.server.routes.callMonitorRoutes
 import com.johnseremba.call.monitor.server.service.HttpServiceWorker.Companion.PORT
 import io.ktor.application.install
@@ -39,6 +40,8 @@ internal class CallMonitorHttpService : Service() {
         Log.v(TAG, "onCreate")
         if (!isRunning.get()) {
             initializeHttpService()
+            // Delay required to prevent a crash if koin initialization isn't completed by the time the service gets created
+            Thread.sleep(100)
             isRunning.set(true)
         }
     }
@@ -51,9 +54,6 @@ internal class CallMonitorHttpService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         Log.v(TAG, "onBind")
-        // Delay required to prevent a crash if koin initialization isn't completed by the time the service gets bound
-        Thread.sleep(100)
-
         serviceHandler = ServiceHandler(Looper.getMainLooper())
         messenger = Messenger(serviceHandler)
         return messenger?.binder
@@ -69,7 +69,7 @@ internal class CallMonitorHttpService : Service() {
             InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE)
             embeddedServer(Netty, PORT) {
                 install(ContentNegotiation) { gson {} }
-                install(Koin) { modules(coreModule, module { single { baseContext } }) }
+                install(Koin) { modules(coreModule, databaseModule, module { single { baseContext } }) }
                 install(Routing) { callMonitorRoutes() }
             }.start(wait = true)
         }.start()

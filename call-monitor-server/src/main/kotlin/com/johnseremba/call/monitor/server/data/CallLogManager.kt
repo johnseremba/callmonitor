@@ -8,14 +8,20 @@ import android.provider.ContactsContract.PhoneLookup
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.johnseremba.call.monitor.server.data.repo.Repository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 private const val TAG = "CallLogManager"
 
 internal class CallLogManager(
     private val context: Context,
     private val callMonitorFSM: CallMonitor,
-    private val repository: Repository
+    private val repository: Repository,
+    dispatcher: CoroutineDispatcher
 ) {
+
+    private val coroutineScope: CoroutineScope = CoroutineScope(dispatcher)
     private var lastCallState = TelephonyManager.CALL_STATE_IDLE
 
     fun onCallStateChanged(state: Int, number: String?) {
@@ -39,7 +45,9 @@ internal class CallLogManager(
                 else
                     callMonitorFSM.setCallEndedState()
 
-                repository.saveCallLog(callMonitorFSM.getCallLog())
+                coroutineScope.launch {
+                    repository.saveCallLog(callMonitorFSM.getCallLog())
+                }
             }
         }
     }

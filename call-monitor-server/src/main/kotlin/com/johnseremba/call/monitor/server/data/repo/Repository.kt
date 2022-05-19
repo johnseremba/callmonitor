@@ -3,7 +3,7 @@ package com.johnseremba.call.monitor.server.data.repo
 import com.johnseremba.call.monitor.server.data.CallEntry
 
 internal interface Repository {
-    fun saveCallLog(entry: CallEntry): Boolean
+    suspend fun saveCallLog(entry: CallEntry): Boolean
 
-    fun getCallLogs(): List<CallEntry>
+    suspend fun getCallLogs(): List<CallEntry>
 }
