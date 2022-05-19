@@ -42,6 +42,7 @@ internal class CallMonitorHttpService : Service() {
             initializeHttpService()
             // Delay required to prevent a crash if koin initialization isn't completed by the time the service gets created
             Thread.sleep(100)
+            serviceWorker.checkFirstTimeLaunch()
             isRunning.set(true)
         }
     }
@@ -68,7 +69,7 @@ internal class CallMonitorHttpService : Service() {
         Thread {
             InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE)
             embeddedServer(Netty, PORT) {
-                install(ContentNegotiation) { gson {} }
+                install(ContentNegotiation) { gson { setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") } }
                 install(Koin) { modules(coreModule, databaseModule, module { single { baseContext } }) }
                 install(Routing) { callMonitorRoutes() }
             }.start(wait = true)
