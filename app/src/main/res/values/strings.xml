@@ -3,4 +3,5 @@
     <string name="label_ip_address">Ip Address:</string>
     <string name="label_port">Port:</string>
     <string name="label_call_logs">Call Logs</string>
+    <string name="call_duration">%1$s%2$s</string>
 </resources>

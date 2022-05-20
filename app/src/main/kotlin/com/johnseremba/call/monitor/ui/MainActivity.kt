@@ -20,6 +20,7 @@ import com.johnseremba.call.monitor.di.AppKoinComponent
 import com.johnseremba.call.monitor.server.service.ServiceCommunicationApi
 import com.johnseremba.call.monitor.server.service.getServiceIntent
 import com.johnseremba.call.monitor.server.service.toServiceMessage
+import com.johnseremba.call.monitor.ui.adapter.CallLogsAdapter
 import com.johnseremba.call.monitor.ui.domain.CallLogsUiContract
 import com.johnseremba.call.monitor.ui.domain.CallLogsUiContract.State
 import com.johnseremba.call.monitor.ui.domain.CallLogsUiContract.State.Error
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
     private val serviceMessenger: Messenger = Messenger(IncomingHandler())
 
     private val viewModel: MainActivityViewModel by inject()
+    private val callLogsAdapter: CallLogsAdapter = CallLogsAdapter()
 
     private inner class IncomingHandler : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
@@ -60,6 +62,7 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        initUi()
         initObservers()
     }
 
@@ -78,6 +81,10 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
         super.onDestroy()
     }
 
+    private fun initUi() {
+        binding.rvLoggedCalls.adapter = callLogsAdapter
+    }
+
     private fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -94,8 +101,7 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
 
         when (uiState) {
             is Success -> {
-                // load adapter with results
-                // display results
+                callLogsAdapter.submitList(uiState.data)
             }
             is Error -> {
                 binding.tvErrorMessage.text = uiState.message

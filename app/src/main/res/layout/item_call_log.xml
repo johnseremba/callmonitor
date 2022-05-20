@@ -11,7 +11,7 @@
         android:id="@+id/tv_call_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="0.5"
+        android:layout_weight="0.7"
         android:padding="6dp"
         tools:text="John Doe" />
 
@@ -20,7 +20,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="6dp"
-        android:layout_weight="0.5"
+        android:layout_weight="0.3"
         android:background="@drawable/gray_left_boarder"
         tools:text="5 mins" />
 </LinearLayout>
