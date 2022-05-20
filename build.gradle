@@ -21,6 +21,9 @@ ext {
     androidXMaterialVersion = '1.5.0'
     androidXAppCompatVersion = '1.4.1'
     androidXConstraintLayoutVersion = '2.1.3'
+    androidXLifecycleVersion = '2.2.0'
+    androidXLifecycleRuntimeVersion= '2.5.0-rc01'
     desugaringLibrary = '1.1.5'
     koinVersion = '3.1.6'
+    kotlinxCoroutinesVersion = '1.6.1'
 }

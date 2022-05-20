@@ -2,7 +2,7 @@ package com.johnseremba.call.monitor.server.data
 
 import java.util.*
 
-internal data class CallEntry(
+data class CallEntry(
     val beginning: Date?,
     val duration: String?,
     val number: String?,

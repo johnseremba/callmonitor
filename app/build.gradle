@@ -61,7 +61,9 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidXAppCompatVersion"
     implementation "androidx.constraintlayout:constraintlayout:$androidXConstraintLayoutVersion"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$desugaringLibrary"
-
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$androidXLifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$androidXLifecycleRuntimeVersion"
     implementation "io.insert-koin:koin-android:$koinVersion"
 
     implementation project(":call-monitor-server")

@@ -11,11 +11,22 @@ import android.os.Message
 import android.os.Messenger
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.johnseremba.call.monitor.databinding.ActivityMainBinding
 import com.johnseremba.call.monitor.di.AppKoinComponent
 import com.johnseremba.call.monitor.server.service.ServiceCommunicationApi
 import com.johnseremba.call.monitor.server.service.getServiceIntent
 import com.johnseremba.call.monitor.server.service.toServiceMessage
+import com.johnseremba.call.monitor.ui.domain.CallLogsUiContract
+import com.johnseremba.call.monitor.ui.domain.CallLogsUiContract.State
+import com.johnseremba.call.monitor.ui.domain.CallLogsUiContract.State.Error
+import com.johnseremba.call.monitor.ui.domain.CallLogsUiContract.State.Success
+import com.johnseremba.call.monitor.ui.domain.MainActivityViewModel
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 
 private const val TAG = "MainActivity"
 private const val REQUEST_CALL_LOG_PERMISSIONS_CODE = 101
@@ -24,6 +35,8 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
     private lateinit var binding: ActivityMainBinding
     private var service: Messenger? = null
     private val serviceMessenger: Messenger = Messenger(IncomingHandler())
+
+    private val viewModel: MainActivityViewModel by inject()
 
     private inner class IncomingHandler : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
@@ -47,6 +60,7 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        initObservers()
     }
 
     override fun onStart() {
@@ -62,6 +76,32 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
     override fun onDestroy() {
         doUnbindService()
         super.onDestroy()
+    }
+
+    private fun initObservers() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect {
+                    handleUiState(it)
+                }
+            }
+        }
+    }
+
+    private fun handleUiState(uiState: State) {
+        binding.progressBar.isVisible = uiState.isLoading
+        binding.tvErrorMessage.isVisible = uiState is Error
+
+        when (uiState) {
+            is Success -> {
+                // load adapter with results
+                // display results
+            }
+            is Error -> {
+                binding.tvErrorMessage.text = uiState.message
+            }
+            else -> Unit
+        }
     }
 
     private fun doBindService() {
@@ -84,6 +124,7 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
                     tvIpAddress.text = message.connectionObj.ipAddress
                     tvPort.text = message.connectionObj.port
                 }
+                viewModel.sendEvent(CallLogsUiContract.Event.FetchCallLogs)
             }
             else -> Unit
         }
