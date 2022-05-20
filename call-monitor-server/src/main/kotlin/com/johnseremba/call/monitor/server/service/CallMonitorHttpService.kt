@@ -34,7 +34,6 @@ import org.koin.ktor.ext.Koin
 internal class CallMonitorHttpService : Service() {
     private var messenger: Messenger? = null
     private var serviceHandler: ServiceHandler? = null
-    private val serviceWorker: HttpServiceWorker by inject(HttpServiceWorker::class.java)
 
     override fun onCreate() {
         Log.v(TAG, "onCreate")
@@ -42,7 +41,6 @@ internal class CallMonitorHttpService : Service() {
             initializeHttpService()
             // Delay required to prevent a crash if koin initialization isn't completed by the time the service gets created
             Thread.sleep(100)
-            serviceWorker.checkFirstTimeLaunch()
             isRunning.set(true)
         }
     }
@@ -70,14 +68,20 @@ internal class CallMonitorHttpService : Service() {
             InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE)
             embeddedServer(Netty, PORT) {
                 install(ContentNegotiation) { gson { setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") } }
-                install(Koin) { modules(coreModule, databaseModule, module { single { baseContext } }) }
+                install(Koin) {
+                    modules(
+                        coreModule,
+                        databaseModule,
+                        module { single { baseContext } })
+                }
                 install(Routing) { callMonitorRoutes() }
-            }.start(wait = true)
+            }.start()
         }.start()
     }
 
     private fun startForeground() {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         ApiVersionHelper.fromVersionCode().configureChannel(
             NOTIFICATION_CHANNEL_ID,
             getString(R.string.call_monitor_service_channel_name),
@@ -95,14 +99,21 @@ internal class CallMonitorHttpService : Service() {
         .build()
 
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
+        private val serviceWorker: HttpServiceWorker by inject(HttpServiceWorker::class.java)
+
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                ServiceCommunicationApi.IN_REGISTER_CLIENT_ID -> ServiceClientManager.registerClient(
-                    msg.replyTo,
-                    serviceWorker.getIpV4Address(),
-                    PORT.toString()
+                ServiceCommunicationApi.IN_REGISTER_CLIENT_ID -> {
+                    ServiceClientManager.registerClient(
+                        msg.replyTo,
+                        serviceWorker.getIpV4Address(),
+                        PORT.toString()
+                    )
+                    serviceWorker.checkFirstTimeLaunch()
+                }
+                ServiceCommunicationApi.IN_UN_REGISTER_CLIENT_ID -> ServiceClientManager.unRegisterClient(
+                    msg.replyTo
                 )
-                ServiceCommunicationApi.IN_UN_REGISTER_CLIENT_ID -> ServiceClientManager.unRegisterClient(msg.replyTo)
                 else -> super.handleMessage(msg)
             }
         }

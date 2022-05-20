@@ -11,7 +11,6 @@ import com.johnseremba.call.monitor.server.data.preferences.PreferenceStorage
 import com.johnseremba.call.monitor.server.data.repo.LocalRepository
 import com.johnseremba.call.monitor.server.data.repo.Repository
 import com.johnseremba.call.monitor.server.domain.GetIpAddressUseCase
-import com.johnseremba.call.monitor.server.domain.GetOngoingCallUseCase
 import com.johnseremba.call.monitor.server.domain.SetFirstTimeLaunchDateUseCase
 import com.johnseremba.call.monitor.server.routes.call_logs.GetCallLogsUseCase
 import com.johnseremba.call.monitor.server.routes.root.GetCallMonitorStartDateUseCase
@@ -23,18 +22,34 @@ import org.koin.dsl.module
 
 internal val coreModule = module {
     single { HttpServiceWorker(getIpAddressUseCase = get(), setFirstTimeLaunchDateUseCase = get()) }
-    single { CallLogManager(context = get(), callMonitorFSM = get(), repository = get(), dispatcher = get()) }
+    single {
+        CallLogManager(
+            context = get(),
+            callMonitorFSM = get(),
+            repository = get(),
+            dispatcher = get()
+        )
+    }
     single { CallMonitorFSM() as CallMonitor }
     single { LocalRepository(database = get(), dispatcher = get()) as Repository }
     factory { GetIpAddressUseCase() }
-    factory { GetOngoingCallUseCase() }
-    factory { GetSupportedServicesUseCase(getIpAddressUseCase = get(), getCallMonitorStartDateUseCase = get()) }
+    factory {
+        GetSupportedServicesUseCase(
+            getIpAddressUseCase = get(),
+            getCallMonitorStartDateUseCase = get()
+        )
+    }
     factory { GetCallMonitorStartDateUseCase(preferenceStorage = get()) }
     factory { SetFirstTimeLaunchDateUseCase(preferenceStorage = get()) }
     factory { GetCallStatusUseCase(callMonitorFSM = get()) }
     factory { GetCallLogsUseCase(repository = get()) }
     single { Dispatchers.IO }
-    single { get<Context>().getSharedPreferences("call_monitor_service_prefs", Context.MODE_PRIVATE) }
+    single {
+        get<Context>().getSharedPreferences(
+            "call_monitor_service_prefs",
+            Context.MODE_PRIVATE
+        )
+    }
     single { CallMonitorServicePreferenceStorage(sharedPreferences = get()) as PreferenceStorage }
 }
 

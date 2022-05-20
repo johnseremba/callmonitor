@@ -4,7 +4,7 @@ import java.util.*
 
 internal data class Response<T>(val data: T)
 
-sealed class ErrorResponse {
+internal sealed class ErrorResponse {
     data class GenericError(val message: String = "Unexpected error occurred!") : ErrorResponse()
 }
 
