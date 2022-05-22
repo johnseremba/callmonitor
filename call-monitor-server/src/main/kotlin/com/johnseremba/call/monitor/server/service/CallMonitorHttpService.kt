@@ -26,23 +26,27 @@ import io.ktor.server.netty.Netty
 import io.netty.util.internal.logging.InternalLoggerFactory
 import io.netty.util.internal.logging.JdkLoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.ktor.ext.Koin
 
 internal class CallMonitorHttpService : Service() {
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var messenger: Messenger? = null
     private var serviceHandler: ServiceHandler? = null
 
     override fun onCreate() {
+        super.onCreate()
         Log.v(TAG, "onCreate")
-        if (!isRunning.get()) {
-            initializeHttpService()
-            // Delay required to prevent a crash if koin initialization isn't completed by the time the service gets created
-            Thread.sleep(100)
-            isRunning.set(true)
-        }
+        initializeHttpService()
+        // Delay required to prevent a crash if koin initialization isn't completed by the time the service gets created
+        Thread.sleep(100)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -60,11 +64,13 @@ internal class CallMonitorHttpService : Service() {
 
     override fun onDestroy() {
         koinApplication().close()
+        coroutineScope.cancel()
         super.onDestroy()
     }
 
     private fun initializeHttpService() {
-        Thread {
+        Log.v(TAG, "initializeHttpService")
+        coroutineScope.launch {
             InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE)
             embeddedServer(Netty, PORT) {
                 install(ContentNegotiation) { gson { setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") } }
@@ -75,8 +81,8 @@ internal class CallMonitorHttpService : Service() {
                         module { single { baseContext } })
                 }
                 install(Routing) { callMonitorRoutes() }
-            }.start()
-        }.start()
+            }.start(wait = false)
+        }
     }
 
     private fun startForeground() {
@@ -128,6 +134,7 @@ internal class CallMonitorHttpService : Service() {
 
         @JvmStatic
         internal fun startService(context: Context) {
+            Log.v(TAG, "startService: ${isRunning.get()}")
             if (!isRunning.get())
                 try {
                     val intent = getServiceIntent(context)

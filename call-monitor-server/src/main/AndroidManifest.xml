@@ -19,7 +19,7 @@
             android:name=".service.CallMonitorHttpService"
             android:exported="false" />
         <receiver
-            android:name="com.johnseremba.call.monitor.server.service.BootCompletedReceiver"
+            android:name="com.johnseremba.call.monitor.server.receiver.BootCompletedReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
