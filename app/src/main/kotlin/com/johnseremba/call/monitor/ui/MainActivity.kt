@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.johnseremba.call.monitor.databinding.ActivityMainBinding
 import com.johnseremba.call.monitor.di.AppKoinComponent
+import com.johnseremba.call.monitor.server.service.CallMonitorHttpService
 import com.johnseremba.call.monitor.server.service.ServiceCommunicationApi
 import com.johnseremba.call.monitor.server.service.getServiceIntent
 import com.johnseremba.call.monitor.server.service.toServiceMessage
@@ -69,6 +70,7 @@ class MainActivity : AppCompatActivity(), AppKoinComponent {
     override fun onStart() {
         super.onStart()
         if (PermissionUtils.hasCallLoggingPermissions(this)) {
+            CallMonitorHttpService.startService(this.applicationContext)
             doBindService()
         } else {
             Log.d(TAG, "Requesting necessary permissions")

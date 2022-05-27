@@ -36,7 +36,7 @@ import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.ktor.ext.Koin
 
-internal class CallMonitorHttpService : Service() {
+class CallMonitorHttpService : Service() {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var messenger: Messenger? = null
     private var serviceHandler: ServiceHandler? = null
@@ -133,7 +133,7 @@ internal class CallMonitorHttpService : Service() {
         private val isRunning = AtomicBoolean(false)
 
         @JvmStatic
-        internal fun startService(context: Context) {
+        fun startService(context: Context) {
             Log.v(TAG, "startService: ${isRunning.get()}")
             if (!isRunning.get())
                 try {
